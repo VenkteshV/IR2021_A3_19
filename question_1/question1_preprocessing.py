@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import re
 import string
+import numpy as np
 import nltk
 from nltk.corpus import stopwords,wordnet
 from nltk.tokenize import RegexpTokenizer, word_tokenize, sent_tokenize
@@ -22,9 +23,27 @@ def clean_meta(text):
     text = re.sub(r'(From:\s+[^\n]+\n)', '', text)
     text = re.sub(r'(Subject:[^\n]+\n)', '', text)
     text = re.sub(r'(Nntp-Posting-Host:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(NNTP-Posting-Host:\s+[^\n]+\n)', '', text)
+
     text = re.sub(r'(([\sA-Za-z0-9\-]+)?[A|a]rchive-name:[^\n]+\n)', '', text)
     text = re.sub(r'(Last-modified:[^\n]+\n)', '', text)
     text = re.sub(r'(Version:[^\n]+\n)', '', text)
+    text = re.sub(r'(XXXMessageID::\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(XUserAgent:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(Message-ID:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(X-Newsreader:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(References:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(Organization:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(article:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(Reply-To:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(In-Reply-To:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(Article:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(In article \<[^\n]+\n)', '', text)
+    text = re.sub(r'(Sender:\s+[^\n]+\n)', '', text)
+    text = re.sub(r'(\>:In article \<[^\n]+\n)', '', text)
+    text = re.sub(r'(In article [^\n]+\n)', '', text)
+    text = re.sub(r'(\>In article \<[a-z]+[^\n]+\n)', '', text)
+
 
     return text
 
@@ -82,6 +101,12 @@ def preprocess(text):
     text = remove_stopwords(text)
     return text
 
+def train_data_test_data_split(data, split_factor):
+    num_train_data = int(split_factor * data.shape[0])
+    data_indices = range(data.shape[0])
+    data_indices_shuffled = np.random.permutation(data_indices)
+    train_data,test_data = data.iloc[data_indices_shuffled[:num_train_data]],data.iloc[data_indices_shuffled[num_train_data:]]
+    return train_data, test_data
 
 def get_data(class_name):
     file_names = os.listdir("20_newsgroups/"+class_name)
@@ -98,5 +123,15 @@ if __name__=="__main__":
     for class_name in class_names:
         get_data(class_name)
     data = pd.DataFrame(data)
-    print(data['text'].values)
-    print(data['label'].value_counts())
+    train_data, test_data = train_data_test_data_split(data,0.8)
+    print(train_data,train_data.shape,test_data,test_data.shape)
+    train_data.to_csv("train_80_20_split.csv",index=False)
+    test_data.to_csv("test_80_20_split.csv",index=False)
+    train_data, test_data = train_data_test_data_split(data,0.5)
+    print(train_data,train_data.shape,test_data,test_data.shape)
+    train_data.to_csv("train_50_50_split.csv",index=False)
+    test_data.to_csv("test_50_50_split.csv",index=False)
+    train_data, test_data = train_data_test_data_split(data,0.7)
+    print(train_data,train_data.shape,test_data,test_data.shape)
+    train_data.to_csv("train_70_30_split.csv",index=False)
+    test_data.to_csv("test_70_30_split.csv",index=False)
