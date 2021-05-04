@@ -1,6 +1,6 @@
 import networkx as nx
 from igraph import *
-
+import json
 
 def read_graph():
     fb_graph = nx.read_edgelist("Wiki-Vote.txt",  create_using=nx.DiGraph, nodetype=int)
@@ -12,12 +12,18 @@ def plot_graph(graph):
 
 def compute_pagerank(fb_graph):
     pagerank_scores = nx.pagerank(fb_graph,alpha=0.85,tol=0.0001)
+    with open("pagerank.json","w") as f:
+        json.dump(pagerank_scores,f)
     print("top 5 nodes with pagerank scores are:",sorted([(b, a) for a, b in pagerank_scores.items()], reverse=True)[:5])
 
 def compute_hits(fb_graph):
     hits_scores = nx.hits(fb_graph,tol=0.0001)
     authorities_scores = hits_scores[1]
     hub_scores = hits_scores[0]
+    with open("hits_hubs.json","w") as f:
+        json.dump(hub_scores,f)   
+    with open("hits_authorities.json","w") as f:
+        json.dump(authorities_scores,f)
     print("top 5 nodes according to authorities scores are:",sorted([(b, a) for a, b in authorities_scores.items()], reverse=True)[:5])
     print("top 5 nodes according to hub scores are:",sorted([(b, a) for a, b in hub_scores.items()], reverse=True)[:5])
 
